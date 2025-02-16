@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service-app
+  template:
+    metadata:
+      labels:
+        app: order-service-app
+    spec:
+      containers:
+        - name: order-service-app
+          image: dailycodebuffer/orderservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: order-app-port
+              containerPort: 8082
+          env:
+            - name: EUREKA_SERVER_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: eureka-cm
+                  key: eureka_service_address
+
+            - name: CONFIG_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config-cm
+                  key: config_url
+
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: hostname
+                  name: mysql-cm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service-app
+  ports:
+    - port: 80
+      targetPort: order-app-port

@@ -1,0 +1,49 @@
+# Zipkin Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: zipkin
+  template:
+    metadata:
+      labels:
+        app: zipkin
+    spec:
+      containers:
+        - name: zipkin
+          image: openzipkin/zipkin:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9411
+              name: zipkin-port
+---
+# # Zipkin Service
+# apiVersion: v1
+# kind: Service
+# metdata:
+#   name: zipkin-svc
+# spec:
+#   type: ClusterIP
+#   selector:
+#     app: zipkin
+#   ports:
+#     - port: 9411
+#       targetPort: zipkin-container-port
+
+---
+# Zipkin LB Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-lb-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: zipkin
+  ports:
+    - port: 9411
+      targetPort: zipkin-port
